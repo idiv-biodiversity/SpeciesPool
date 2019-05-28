@@ -8,7 +8,6 @@
 #' @export
 
 Mij.calc <- function(dt, verbose=F) {
-  require(Matrix)
   if(ncol(dt) !=3) stop("dt should have three columns:  releve, species,abundance")
   colnames(dt) <- c( "RELEVE", "SPECIES","presabs")
   if(!is.factor(dt$SPECIES)) {
@@ -23,11 +22,12 @@ Mij.calc <- function(dt, verbose=F) {
     if(verbose) print("converting abundances to presence\absence")
     dt$presabs <- as.numeric(dt$presabs>0*1)}
   if(verbose) print("Calculating matrix Mij")
-  DT.matrix.pa <- sparseMatrix(as.integer(dt$RELEVE),
+  DT.matrix.pa <- Matrix::sparseMatrix(as.integer(dt$RELEVE),
                                as.integer(dt$SPECIES),
                                x = dt$presabs,
                                dimnames=list(levels(dt), levels(dt$SPECIES)))
-  Mij <- crossprod(DT.matrix.pa, DT.matrix.pa)
-  Mij <- sweep(Mij, 2, diag(Mij), FUN="/")
+  Mij <- Matrix::crossprod(DT.matrix.pa, DT.matrix.pa)
+  #Mij <- sweep(Mij, 2, diag(Mij), FUN="/")
+  Mij <- sweep(Mij, 2, Mij[seq(1, length(Mij), by=ncol(Mij)+1)], FUN="/") #alternative to above, to subset long integers
   return(Mij)
 }

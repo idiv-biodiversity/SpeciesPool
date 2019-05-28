@@ -1,14 +1,32 @@
 Package: SpeciesPool
 Title: Plot-specific species pools based on Beal's smoothing
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R: c(
     person(given = "Francesco Maria",
            family = "Sabatini",
            role = c("aut", "cre"),
            email = "francesco.sabatini@botanik.uni-halle.de",
-           comment = c(ORCID = "0000-0002-7202-7697"))
+           comment = c(ORCID = "0000-0002-7202-7697")),
+    person(given = "Helge",
+           family = "Bruelheide",
+           role = c("aut"),
+           email = "helge.bruelheide@botanik.uni-halle.de",
+           comment = c(ORCID = ""))
+           )
 Description: Function to calculate the plot-specific species pool, based on a vegetation database and Beals' smoothing.
-License: CC-BY
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
+Depends: 
+    dplyr,
+    Matrix,
+    dismo,
+    tidyr,
+    reshape2,
+    SpadeR,
+    vegan,
+    parallel,
+    doParallel,
+    foreach
+

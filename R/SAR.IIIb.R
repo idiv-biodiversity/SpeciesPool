@@ -5,6 +5,7 @@
 #' @author Helge Bruelheide
 #' @param x A vector of species richness
 #' @param areas A vector of plot sizes
+#' @param n numeric - number of intervals of rarefaction curve
 #' @return Returns a dataframe of cumulative richness and pooled plot areas
 #' @export
 
