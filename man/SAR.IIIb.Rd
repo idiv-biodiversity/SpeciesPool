@@ -10,6 +10,8 @@ SAR.IIIb(x, areas, n = 10)
 \item{x}{A vector of species richness}
 
 \item{areas}{A vector of plot sizes}
+
+\item{n}{numeric - number of intervals of rarefaction curve}
 }
 \value{
 Returns a dataframe of cumulative richness and pooled plot areas
