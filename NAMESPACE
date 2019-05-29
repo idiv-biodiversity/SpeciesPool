@@ -2,6 +2,6 @@
 
 export(Mij.calc)
 export(SAR.IIIb)
-export(SpeciesPool_sPlot)
+export(SpeciesPool)
 export(beals.all)
 export(bray.curtis)

@@ -13,7 +13,7 @@ Authors@R: c(
            email = "helge.bruelheide@botanik.uni-halle.de",
            comment = c(ORCID = ""))
            )
-Description: Function to calculate the plot-specific species pool, based on a vegetation database and Beals' smoothing.
+Description: Set of functions to calculate the plot-specific species pool based on a vegetation database and Beals' smoothing.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -25,6 +25,7 @@ Depends:
     tidyr,
     reshape2,
     SpadeR,
+    sp,
     vegan,
     parallel,
     doParallel,
