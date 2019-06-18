@@ -98,7 +98,9 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                                                  #"t.radius", "t.bray", "t.plot.number"
                                                  )))
     result <- as.tbl(as.data.frame(result))
-    if(species.list==T) result <- result %>% mutate(sp.pool.list=NA) %>% mutate(sp.pool.list=as.list(sp.pool.list))
+    if(species.list==T) result <- result %>%
+      mutate(sp.pool.list=NA) %>%
+      mutate(sp.pool.list=as.list(sp.pool.list))
 
     #for(p in 1:nrow(parameters)){
     result[1,1] <- env@data$RELEVE_NR[i]
@@ -163,11 +165,11 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
             # store species pool in data table  #we do it out of the loop
             if(species.list==T){
               result <-  result %>%
-                mutate(sp.pool.list = list((target.plot %>%
+                mutate(sp.pool.list = list(target.plot %>%
                                               ungroup() %>%
                                               arrange(desc(beals)) %>%
-                                              filter(beals > result[which(colnames(result)=="beals.at.chao")]
-                                              ))$SPECIES_NR))
+                                              filter(beals >= (result[which(colnames(result)=="beals.at.chao")])$beals.at.chao )
+                                            ))
             }
 
 
