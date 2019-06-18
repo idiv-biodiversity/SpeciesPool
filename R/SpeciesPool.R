@@ -94,7 +94,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                                                  "arr.k","arr.z", "arr.AIC",
                                                  "gomp.Asym", "gomp.b2", "gomp.b3", "gomp.AIC",
                                                  "mm.Vm", "mm.K", "mm.AIC",
-                                                 "Asymp", "R0.Asym", "lrc.Asym", "AIC.Asym",
+                                                 "Asymp", "R0.Asym", "lrc.Asym", "AIC.Asym"
                                                  #"t.radius", "t.bray", "t.plot.number"
                                                  )))
     result <- as.tbl(as.data.frame(result))
