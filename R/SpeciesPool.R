@@ -24,21 +24,24 @@
 #' @export
 #' @examples
 #' load(GVRD_test_data.RData) ## data provided separately, make sure it's in working directory
-#' aa <- SpeciesPool_sPlot(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
+#' aa <- SpeciesPool(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
 
 
 
 
 SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
-                              t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list=F) {
+                              t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list=F,
+                        cutoff=c("Chao", "Gompertz", "Michaelis")) {
+
   ##validity check
   if(class(coords) != ("SpatialPointsDataFrame")) {
     stop("object 'coords' should be of class 'SpatialPointsDataFrame")
   }
   if(ncol(input.data) !=3) stop("input.data should have three columns: species, releve, abundance")
   colnames(input.data) <- c( "RELEVE_NR", "SPECIES_NR","COV_PERC")
+  input.data$SPECIES_NR <- factor(input.data$SPECIES_NR)
   if(!is.numeric(input.data$COV_PERC)) {stop("The abundance column should be numeric")}
-  if(any(tapply(input.data$COV_PERC, input.data$RELEVE_NR, "sum"))==0) {stop("There's a plot with no species")}
+  if(any(tapply(input.data$COV_PERC, input.data$RELEVE_NR, "sum")==0)) {stop("There's a plot with no species")}
 
   if(ncol(coords@data)!=2) {stop("The coords object should have only two columns: ReleveID and PlotArea (besides the spatial coordinates)")}
   colnames(coords@data) <- c("RELEVE_NR", "AREA")
@@ -51,14 +54,15 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
     Mij <- Mij.calc(input.data)
     if(verbose) print("Mij matrix not specified - calculating it")
   }
-  all.species <- sort(unique(input.data$SPECIES_NR))
-  if(!identical(all.species, as.numeric(colnames(Mij)))) {stop("check.order of species in Mij!")}
-
+  #all.species <- sort(unique(input.data$SPECIES_NR))
+  all.species <- sort(unique(rownames(Mij)))
+#  if(!identical(all.species, as.numeric(colnames(Mij)))) {stop("check.order of species in Mij!")}
+  if(any(!unique(input.data$SPECIES_NR) %in% all.species)) {stop("There a mismatch between species in Mij and species in input.data!")}
 
   DT <- input.data
   env <- coords
 
-  ### subsets DT if an index vector of plots is specified
+  ### select all rows if an index vector of plots is not specified
   if(is.null(rows)){
     rows <- 1:nrow(env)
   }
@@ -161,18 +165,6 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
             target.plot <- DT3 %>% filter(RELEVE_NR==env@data$RELEVE_NR[i])
             result[1,12] <- sort(target.plot$beals, decreasing=T)[(round(result[1,3],0))$chao]  ##beals' at chao (not iChao!)
             # lowest beals probability of the species at value of chao
-
-            # store species pool in data table  #we do it out of the loop
-            if(species.list==T){
-              result <-  result %>%
-                mutate(sp.pool.list = list(target.plot %>%
-                                              ungroup() %>%
-                                              arrange(desc(beals)) %>%
-                                              filter(beals >= (result[which(colnames(result)=="beals.at.chao")])$beals.at.chao )
-                                            ))
-            }
-
-
             ### Species area accumulation curves ###
             #env3@data$AREA
             # not all plots have an entry in the area field
@@ -243,6 +235,21 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                 result[1,27] <- AIC(model3e)
               }
             }
+            # store species pool in data table  #we do it out of the loop
+            if(species.list==T){
+              cutoff0 <- ifelse(cutoff=="Chao", "iChao2",
+                                ifelse(cutoff=="Gompertz", "gomp.Asym",
+                                       "Asymp"))
+              result <-  result %>%
+                mutate(sp.pool.list = list(target.plot %>%
+                                             ungroup() %>%
+                                             arrange(desc(beals)) %>%
+                                             slice(1:round(as.numeric(result[1,cutoff0][1]),0))
+                                           ))
+                                           #filter(beals >= (result[which(colnames(result)=="beals.at.chao")])$beals.at.chao )
+            }
+
+
           }
         }
 
