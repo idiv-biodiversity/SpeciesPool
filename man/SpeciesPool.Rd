@@ -5,7 +5,8 @@
 \title{Species pool based on Beal's smoothing}
 \usage{
 SpeciesPool(input.data, coords, Mij = NULL, ncores = 1, rows = NULL,
-  t.radius = 20000, t.bray = 0.2, t.plot.number = 10L, verbose = T,
+  t.radius = 20000, t.bray = 0.2, t.plot.number = 10L,
+  cutoff = c("Chao", "Gompertz", "Michaelis"), verbose = T,
   species.list = F)
 }
 \arguments{
@@ -24,6 +25,8 @@ SpeciesPool(input.data, coords, Mij = NULL, ncores = 1, rows = NULL,
 \item{t.bray}{Threshold of bray-curtis dissimilarity for selection relevé compositionally similar to target relevé}
 
 \item{t.plot.number}{Minimum number of neighbouring relevés for calculating rarefaction curves}
+
+\item{cutoff}{Which method to use to set the size of the species pool. Default is 'iChao2', other possible are 'Gompertz' or 'Michaelis'}
 
 \item{verbose}{logical}
 
@@ -44,7 +47,7 @@ For each relevé, this function selectes all neighbouring relevé having a simil
 }
 \examples{
 load(GVRD_test_data.RData) ## data provided separately, make sure it's in working directory
-aa <- SpeciesPool_sPlot(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
+aa <- SpeciesPool(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
 }
 \author{
 Francesco Maria Sabatini
