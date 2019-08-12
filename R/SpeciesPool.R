@@ -11,6 +11,7 @@
 #' @param t.radius Threshold of geographic buffer around target relevé
 #' @param t.bray Threshold of bray-curtis dissimilarity for selection relevé compositionally similar to target relevé
 #' @param t.plot.number Minimum number of neighbouring relevés for calculating rarefaction curves
+#' @param cutoff Which method to use to set the size of the species pool. Default is 'iChao2', other possible are 'Gompertz' or 'Michaelis'
 #' @param verbose logical
 #' @param species.list logical - Should the list of species composing the species pool be returned?
 #' @return Returns a dataframe containing for each relevé:
@@ -30,8 +31,8 @@
 
 
 SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
-                              t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list=F,
-                        cutoff=c("Chao", "Gompertz", "Michaelis")) {
+                              t.radius=20000, t.bray=0.2, t.plot.number=10L, cutoff=c("Chao", "Gompertz", "Michaelis"),
+                        verbose=T, species.list=F) {
 
   ##validity check
   if(class(coords) != ("SpatialPointsDataFrame")) {
@@ -39,7 +40,8 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
   }
   if(ncol(input.data) !=3) stop("input.data should have three columns: species, releve, abundance")
   colnames(input.data) <- c( "RELEVE_NR", "SPECIES_NR","COV_PERC")
-  input.data$SPECIES_NR <- factor(input.data$SPECIES_NR)
+  input.data$SPECIES_NR <- as.character(input.data$SPECIES_NR)
+  input.data$RELEVE_NR <- as.character(input.data$RELEVE_NR)
   if(!is.numeric(input.data$COV_PERC)) {stop("The abundance column should be numeric")}
   if(any(tapply(input.data$COV_PERC, input.data$RELEVE_NR, "sum")==0)) {stop("There's a plot with no species")}
 
@@ -47,6 +49,10 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
   colnames(coords@data) <- c("RELEVE_NR", "AREA")
   if(t.bray <0 | t.bray>1) stop("t.bray should be comprised between 0 and 1")
   #if(!is.numeric(t.plot.number)) stop("t.plot.number should be an integer number")
+  if(length(cutoff)>1){
+    cutoff <- "iChao2"
+    if(verbose==T) {print("cutoff is not defined. Using default iChao2")}
+    }
   ## end of validity check
 
   #calculate Mij matrix, if it is not provided
@@ -55,7 +61,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
     if(verbose) print("Mij matrix not specified - calculating it")
   }
   #all.species <- sort(unique(input.data$SPECIES_NR))
-  all.species <- sort(unique(rownames(Mij)))
+  all.species <- as.character(rownames(Mij))
 #  if(!identical(all.species, as.numeric(colnames(Mij)))) {stop("check.order of species in Mij!")}
   if(any(!unique(input.data$SPECIES_NR) %in% all.species)) {stop("There a mismatch between species in Mij and species in input.data!")}
 
@@ -128,10 +134,12 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
         DT2.beals <-expand.grid(unique(DT2$RELEVE_NR), all.species) %>%
           as.tbl() %>%
           rename(RELEVE_NR=Var1, SPECIES_NR=Var2) %>%
+          mutate_all(~as.character(.)) %>%
           left_join(DT2, by=c("RELEVE_NR", "SPECIES_NR")) %>%
           mutate(COV_PERC = replace_na(COV_PERC,0)) %>%
           mutate(COV_PERC=(COV_PERC>0)*1) %>%
           rename(presence=COV_PERC) %>%
+          arrange(RELEVE_NR) %>%
           group_by(RELEVE_NR) %>%
           mutate(beals=beals.all(SPECIES_NR,presence, Mij))
         DT2.matrix.beals <- acast(DT2.beals, RELEVE_NR ~ SPECIES_NR, fill=0, value.var="beals")
@@ -168,7 +176,10 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
             ### Species area accumulation curves ###
             #env3@data$AREA
             # not all plots have an entry in the area field
-            env4 <- env3[env3@data$AREA>0,]
+            env4 <- env3 #[env3@data$AREA>0,]
+            env4@data <- env4@data %>%
+              filter(AREA>0)
+
             if(dim(env4)[[1]]>= t.plot.number){
               DT4 <- DT3[DT3$RELEVE_NR %in% env4@data$RELEVE_NR,]
               DT4.matrix <- acast(DT4, RELEVE_NR ~ SPECIES_NR, fill=0, value.var="presence")
@@ -261,4 +272,5 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
     return(result)
   }
   return(result6)
+  stopCluster(cl)
 }

@@ -12,8 +12,10 @@
 
 
 beals.all <- function(x.names, x.cover, Mij){
-  x.names.in.plot <- unique(x.names[x.cover>0])
-  M2 <- as.matrix(Mij[,dimnames(Mij)[[2]] %in% x.names.in.plot])
+  x.names.in.plot <- as.character(unique(x.names[x.cover>0]))
+  sort.cols <- match(x.names.in.plot, as.character(dimnames(Mij)[[2]]))
+  M2 <- as.matrix(Mij[,sort.cols])
+  #M2 <- as.matrix(Mij[,dimnames(Mij)[[2]] %in% x.names.in.plot])
   # reduce the Mij matrix to those species that occur in the polygon
   if (is.matrix(M2)){
     return(rowSums(M2)/length(x.names.in.plot))
