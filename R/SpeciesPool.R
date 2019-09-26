@@ -247,11 +247,12 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
               }
             }
             # store species pool in data table  #we do it out of the loop
-            if(species.list==T){
-              cutoff0 <- ifelse(cutoff=="Chao", "iChao2",
-                                ifelse(cutoff=="Gompertz", "gomp.Asym",
-                                       "Asymp"))
-              result <-  result %>%
+            cutoff0 <- ifelse(cutoff=="Chao", "iChao2",
+                              ifelse(cutoff=="Gompertz", "gomp.Asym",
+                                     "Asymp"))
+            if(species.list==T & !is.na(as.numeric(result %>%
+                                  dplyr::select(cutoff0))) ){
+                result <-  result %>%
                 mutate(sp.pool.list = list(target.plot %>%
                                              ungroup() %>%
                                              arrange(desc(beals)) %>%
