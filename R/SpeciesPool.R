@@ -1,23 +1,23 @@
 #' Species pool based on Beal's smoothing
 #'
-#' For each relevé, this function selectes all neighbouring relevé having a similar potential species composition, and fits empirical non-linear functions to rarefaction curves.
+#' For each relevé, this function selects all neighbouring relevés having a similar potential species composition, and fits empirical non-linear functions to rarefaction curves.
 #' @author Francesco Maria Sabatini
 #' @author Helge Bruelheide
-#' @param input.data data.frame of species abundances across relevés. It should have three columns: Relevé ID, Species ID, and species abundance
-#' @param coords A SpatialPointsDataFrame with the geographic coordinates of all plots. It should have Relevè ID and areas defined in the @data
-#' @param Mij Matrix of pairwise likelihood of species co-occurrence (Sparse matrices accepted). If not provided, it will be calculated from the data
-#' @param ncores integer indicating the number of cores to use. If ncores>1 the calculation will be don in parallel
-#' @param rows a vector of integers indicating on which rows of input.data the function should run
-#' @param t.radius Threshold of geographic buffer around target relevé
-#' @param t.bray Threshold of bray-curtis dissimilarity for selection relevé compositionally similar to target relevé
-#' @param t.plot.number Minimum number of neighbouring relevés for calculating rarefaction curves
-#' @param cutoff Which method to use to set the size of the species pool. Default is 'iChao2', other possible are 'Gompertz' or 'Michaelis'
+#' @param input.data data.frame of species abundances across relevés. It should have three columns: one with Relevé IDs, one with Species ID, and one with species abundance/cover values
+#' @param coords A SpatialPointsDataFrame with the geographic coordinates of all plots. It should have Relevé IDs and areas defined in the data
+#' @param Mij matrix of pairwise likelihood of species co-occurrence (sparse matrices accepted). If not provided, it will be calculated from the data
+#' @param ncores integer indicating the number of cores to use. If ncores>1 the calculation will be done in parallel
+#' @param rows a vector of integers indicating on which rows of the input.data the function should run
+#' @param t.radius threshold of geographic buffer around target relevé
+#' @param t.bray threshold of Bray-Curtis dissimilarity for selecting relevés compositionally similar to target relevé
+#' @param t.plot.number minimum number of neighbouring relevés for calculating rarefaction curves
+#' @param cutoff method used to estimate the size of the species pool. Default is 'iChao2', other possible are 'Gompertz' or 'Michaelis'
 #' @param verbose logical
-#' @param species.list logical - Should the list of species composing the species pool be returned?
+#' @param species.list logical: Should the list of species composing the species pool be returned?
 #' @return Returns a dataframe containing for each relevé:
-#' - Species -  the number of species observed across all relevé neighouting the target relevé\cr
-#' - Chao, iChao2, jack1, jack2  -  various species richness estimates, standard errors, as derived from the function SpadeR::ChaoSpecies\cr
-#' - nplots -   number of relevés within a t.radius distance from the target relevé having a bray-curtis dissimilarity lower than t.bray\cr
+#' - Species -  the number of species observed across all relevés neighouring the target relevé\cr
+#' - Chao, iChao2, jack1, jack2 -  various species richness estimates and standard errors, as derived from the function SpadeR::ChaoSpecies\cr
+#' - nplots -  number of relevés within a t.radius distance from the target relevé having a bray-curtis dissimilarity lower than t.bray\cr
 #' - beals.at.chao -  cut-off of Beals' occurrence likelihood, selected as the ith species corresponding to chao\cr
 #' - n.plots.area -   number of relevés within a t.radius distance, and t.bray dissimilarity from target relevés for which area data is available\cr
 #' - arr, gomp, mm, Asymp -   parameter estimates for different empirical non-linear functions fitted to rarefaction curves, with relative AIC\cr
@@ -25,13 +25,14 @@
 #' @export
 #' @examples
 #' load(GVRD_test_data.RData) ## data provided separately, make sure it's in working directory
-#' aa <- SpeciesPool(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000, t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
+#' aa <- SpeciesPool(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000,
+#' >         t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
 
 
 
 
 SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
-                              t.radius=20000, t.bray=0.2, t.plot.number=10L, cutoff=c("Chao", "Gompertz", "Michaelis"),
+                              t.radius=20000, t.bray=0.2, t.plot.number=10L, cutoff=c("iChao2", "Gompertz", "Michaelis"),
                         verbose=T, species.list=F) {
 
   ##validity check
@@ -247,7 +248,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
               }
             }
             # store species pool in data table  #we do it out of the loop
-            cutoff0 <- ifelse(cutoff=="Chao", "iChao2",
+            cutoff0 <- ifelse(cutoff=="iChao2", "iChao2",
                               ifelse(cutoff=="Gompertz", "gomp.Asym",
                                      "Asymp"))
             if(species.list==T & !is.na(as.numeric(result %>%

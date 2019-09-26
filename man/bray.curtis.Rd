@@ -12,10 +12,10 @@ bray.curtis(input.data, target.plot.ID)
 \item{target.plot.ID}{ID or label of target plot}
 }
 \value{
-A vector of bray-curtis dissimilarity between the target and all the other relevés in input.data
+A vector of Bray-Curtis dissimilarities between the target and all the other relevés in input.data
 }
 \description{
-Calculates Bray-Curtis dissimilarity between a target plot, and all the other plots in the dataset
+Calculates Bray-Curtis dissimilarity between a target plot, and all the other relevés in the dataset
 }
 \author{
 Francesco Maria Sabatini

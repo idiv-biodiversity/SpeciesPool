@@ -11,10 +11,10 @@ beals.all(x.names, x.cover, Mij)
 
 \item{x.cover}{vector of species presence-absences}
 
-\item{Mij}{Matrix of pairwise likelihood of species co-occurrence (Sparse matrices accepted)}
+\item{Mij}{matrix of pairwise likelihood of species co-occurrence (sparse matrices accepted)}
 }
 \value{
-A vector of bray-curtis dissimilarity between the target and all the other relevés in input.data
+A vector of Bray-Curtis dissimilarity between the target plot and all the other relevés in input.data
 }
 \description{
 Calculates Beals' smoothing for all species in a target plot, based on Mij matrix

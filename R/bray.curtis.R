@@ -1,11 +1,11 @@
 #' Bray-Curtis dissimilarity
 #'
-#' Calculates Bray-Curtis dissimilarity between a target plot, and all the other plots in the dataset
+#' Calculates Bray-Curtis dissimilarity between a target plot, and all the other relevés in the dataset
 #' @author Francesco Maria Sabatini
 #' @author Helge Bruelheide
 #' @param input.data A species x relevés matrix with abundance values
 #' @param target.plot.ID ID or label of target plot
-#' @return A vector of bray-curtis dissimilarity between the target and all the other relevés in input.data
+#' @return A vector of Bray-Curtis dissimilarities between the target and all the other relevés in input.data
 #' @export
 
 

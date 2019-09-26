@@ -5,8 +5,8 @@
 #' @author Helge Bruelheide
 #' @param x.names vector of species names or labels
 #' @param x.cover vector of species presence-absences
-#' @param Mij Matrix of pairwise likelihood of species co-occurrence (Sparse matrices accepted)
-#' @return A vector of bray-curtis dissimilarity between the target and all the other relevés in input.data
+#' @param Mij matrix of pairwise likelihood of species co-occurrence (sparse matrices accepted)
+#' @return A vector of Bray-Curtis dissimilarity between the target plot and all the other relevés in input.data
 #' @references Ewald, J. (2002) Multiple controls of understorey plant richness in mountain forests of the Bavarian Alps. Phytocoenologia, 32, 85-100.
 #' @export
 
