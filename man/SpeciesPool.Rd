@@ -18,7 +18,7 @@ SpeciesPool(input.data, coords, Mij = NULL, ncores = 1, rows = NULL,
 
 \item{ncores}{integer indicating the number of cores to use. If ncores>1 the calculation will be done in parallel}
 
-\item{rows}{a vector of integers indicating on which rows of the input.data the function should run}
+\item{rows}{a vector of integers indicating on which plots of the input.data the function should run}
 
 \item{t.radius}{threshold of geographic buffer around target relevé}
 

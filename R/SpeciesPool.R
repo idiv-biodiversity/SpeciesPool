@@ -7,7 +7,7 @@
 #' @param coords A SpatialPointsDataFrame with the geographic coordinates of all plots. It should have Relevé IDs and areas defined in the data
 #' @param Mij matrix of pairwise likelihood of species co-occurrence (sparse matrices accepted). If not provided, it will be calculated from the data
 #' @param ncores integer indicating the number of cores to use. If ncores>1 the calculation will be done in parallel
-#' @param rows a vector of integers indicating on which rows of the input.data the function should run
+#' @param rows a vector of integers indicating on which plots of the input.data the function should run
 #' @param t.radius threshold of geographic buffer around target relevé
 #' @param t.bray threshold of Bray-Curtis dissimilarity for selecting relevés compositionally similar to target relevé
 #' @param t.plot.number minimum number of neighbouring relevés for calculating rarefaction curves
@@ -32,7 +32,8 @@
 
 
 SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
-                              t.radius=20000, t.bray=0.2, t.plot.number=10L, cutoff=c("iChao2", "Gompertz", "Michaelis"),
+                              t.radius=20000, t.bray=0.2, t.plot.number=10L,
+                        cutoff=c("iChao2", "Gompertz", "Michaelis"),
                         verbose=T, species.list=F) {
 
   ##validity check
@@ -43,17 +44,20 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
   colnames(input.data) <- c( "RELEVE_NR", "SPECIES_NR","COV_PERC")
   input.data$SPECIES_NR <- as.character(input.data$SPECIES_NR)
   input.data$RELEVE_NR <- as.character(input.data$RELEVE_NR)
+
   if(!is.numeric(input.data$COV_PERC)) {stop("The abundance column should be numeric")}
   if(any(tapply(input.data$COV_PERC, input.data$RELEVE_NR, "sum")==0)) {stop("There's a plot with no species")}
 
   if(ncol(coords@data)!=2) {stop("The coords object should have only two columns: ReleveID and PlotArea (besides the spatial coordinates)")}
   colnames(coords@data) <- c("RELEVE_NR", "AREA")
+  coords@data$RELEVE_NR <- as.character(coords@data$RELEVE_NR)
   if(t.bray <0 | t.bray>1) stop("t.bray should be comprised between 0 and 1")
   #if(!is.numeric(t.plot.number)) stop("t.plot.number should be an integer number")
   if(length(cutoff)>1){
     cutoff <- "iChao2"
     if(verbose==T) {print("cutoff is not defined. Using default iChao2")}
-    }
+  }
+  if(!cutoff %in% c("iChao2", "Gompertz", "Michaelis")) stop("Valid cutoffs include: iChao2 (default), Gompertz, Michaelis")
   ## end of validity check
 
   #calculate Mij matrix, if it is not provided
@@ -68,6 +72,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
 
   DT <- input.data
   env <- coords
+
 
   ### select all rows if an index vector of plots is not specified
   if(is.null(rows)){
@@ -97,6 +102,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
   if(verbose) print("Start main foreach loop")
   ##parallel starts
   result6 <- foreach(i = rows, .combine=rbind) %myinfix% {
+  if(verbose) print(i)
     #set.seed(19)
     result <- array(NA, c(1,27), dimnames=list(NA,
                                                c("RELEVE_NR","Species" ,
@@ -124,7 +130,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
     poly <- circ@polygons
     proj4string(poly) <- proj4string(env)
     index2 <- over(env,poly) ## check how many plots are in the surrounding
-    if(!is.na(index2[i])){  #THIS WORKAROUND avoids crashes when target plot is close to the day changing line
+   # if(!is.na(index2[i])){  #THIS WORKAROUND avoids crashes when target plot is close to the day changing line
       # extract subset of env and DT
       env2 <- env[!is.na(index2),]
       #str(env2)
@@ -267,10 +273,8 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
         }
 
         #    }
-      }
+      } else result[1,11] <- 0
       #  setTxtProgressBar(pb, i)
-      if(verbose) print(i)
-    }
     return(result)
   }
   return(result6)
