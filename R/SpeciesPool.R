@@ -4,7 +4,7 @@
 #' @author Francesco Maria Sabatini
 #' @author Helge Bruelheide
 #' @param input.data data.frame of species abundances across relevés. It should have three columns: one with Relevé IDs, one with Species ID, and one with species abundance/cover values
-#' @param coords A SpatialPointsDataFrame with the geographic coordinates of all plots. It should have Relevé IDs and areas defined in the data
+#' @param coords Either a SpatialPointsDataFrame or a DataFrame with the geographic coordinates of all plots. If SpatialPointsDataframe, it should have Relevé IDs and areas defined in the data. If DataFrame, columns 1:2 should be coordinates (Long, Lat), columns 3:4 should be RelevèIDs and plot area, respectively.
 #' @param Mij matrix of pairwise likelihood of species co-occurrence (sparse matrices accepted). If not provided, it will be calculated from the data
 #' @param ncores integer indicating the number of cores to use. If ncores>1 the calculation will be done in parallel
 #' @param rows a vector of integers indicating on which plots of the input.data the function should run
@@ -14,6 +14,7 @@
 #' @param cutoff method used to estimate the size of the species pool. Default is 'iChao2', other possible are 'Gompertz' or 'Michaelis'
 #' @param verbose logical
 #' @param species.list logical: Should the list of species composing the species pool be returned?
+#' @param mycrs a CRS object defining the coordinate reference of coords, if coords is a data.frame
 #' @return Returns a dataframe containing for each relevé:
 #' - Species -  the number of species observed across all relevés neighouring the target relevé\cr
 #' - Chao, iChao2, jack1, jack2 -  various species richness estimates and standard errors, as derived from the function SpadeR::ChaoSpecies\cr
@@ -34,11 +35,16 @@
 SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                               t.radius=20000, t.bray=0.2, t.plot.number=10L,
                         cutoff=c("iChao2", "Gompertz", "Michaelis"),
-                        verbose=T, species.list=F) {
+                        verbose=T, species.list=F, mycrs=NULL) {
 
   ##validity check
   if(class(coords) != ("SpatialPointsDataFrame")) {
-    stop("object 'coords' should be of class 'SpatialPointsDataFrame")
+    if(class(mycrs) != "CRS") stop("object 'coords' should be of class 'SpatialPointsDataFrame, or a CRS should be provided")
+    print(paste("Create SpatialPointsDataFrame with", mycrs))
+    if(!is.numeric(coords[,4])) stop("Column 4 of object coords should be numeric, and contain plot areas")
+    coords <- SpatialPointsDataFrame(coords = coords[,1:2],
+                                     proj4string = mycrs,
+                                     data = coords[,3:4])
   }
   if(ncol(input.data) !=3) stop("input.data should have three columns: species, releve, abundance")
   colnames(input.data) <- c( "RELEVE_NR", "SPECIES_NR","COV_PERC")
@@ -128,7 +134,9 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
     ## circle around the target plot
     circ <- circles(env[i, ], d = t.radius, lonlat = T)
     poly <- circ@polygons
+    options(warn=-1)
     proj4string(poly) <- proj4string(env)
+    options(warn=0)
     index2 <- over(env,poly) ## check how many plots are in the surrounding
    # if(!is.na(index2[i])){  #THIS WORKAROUND avoids crashes when target plot is close to the day changing line
       # extract subset of env and DT

@@ -7,12 +7,12 @@
 SpeciesPool(input.data, coords, Mij = NULL, ncores = 1, rows = NULL,
   t.radius = 20000, t.bray = 0.2, t.plot.number = 10L,
   cutoff = c("iChao2", "Gompertz", "Michaelis"), verbose = T,
-  species.list = F)
+  species.list = F, mycrs = NULL)
 }
 \arguments{
 \item{input.data}{data.frame of species abundances across relevés. It should have three columns: one with Relevé IDs, one with Species ID, and one with species abundance/cover values}
 
-\item{coords}{A SpatialPointsDataFrame with the geographic coordinates of all plots. It should have Relevé IDs and areas defined in the data}
+\item{coords}{Either a SpatialPointsDataFrame or a DataFrame with the geographic coordinates of all plots. If SpatialPointsDataframe, it should have Relevé IDs and areas defined in the data. If DataFrame, columns 1:2 should be coordinates (Long, Lat), columns 3:4 should be RelevèIDs and plot area, respectively.}
 
 \item{Mij}{matrix of pairwise likelihood of species co-occurrence (sparse matrices accepted). If not provided, it will be calculated from the data}
 
@@ -31,6 +31,8 @@ SpeciesPool(input.data, coords, Mij = NULL, ncores = 1, rows = NULL,
 \item{verbose}{logical}
 
 \item{species.list}{logical: Should the list of species composing the species pool be returned?}
+
+\item{mycrs}{a CRS object defining the coordinate reference of coords, if coords is a data.frame}
 }
 \value{
 Returns a dataframe containing for each relevé:
