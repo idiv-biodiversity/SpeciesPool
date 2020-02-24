@@ -5,4 +5,4 @@ For installing the package in a local Rstudio, use
 library(devtools)  
 install_github("idiv-biodiversity/SpeciesPool", ref="master")  
   
-Please do not share the token with others
+as submitted to Ecography on 23/02/2020
