@@ -16,7 +16,8 @@ SpeciesPool(
   cutoff = c("iChao2", "Gompertz", "Michaelis"),
   verbose = T,
   species.list = F,
-  mycrs = NULL
+  mycrs = NULL,
+  lonlat = NULL
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ SpeciesPool(
 \item{species.list}{logical: Should the list of species composing the species pool be returned?}
 
 \item{mycrs}{a CRS object defining the coordinate reference of coords, if coords is a data.frame}
+
+\item{lonlat}{Specify whether the CRS is projected (lonlat=T) or unprojected (lonlat=F)}
 }
 \value{
 Returns a dataframe containing for each relevé:
