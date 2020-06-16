@@ -1,6 +1,6 @@
 Package: SpeciesPool
 Title: Plot-specific species pools based on Beal's smoothing
-Version: 0.0.1.9000
+Version: 0.0.1.9001
 Authors@R: c(
     person(given = "Francesco Maria",
            family = "Sabatini",
@@ -29,4 +29,5 @@ Depends:
     vegan,
     parallel,
     doParallel,
-    foreach
+    foreach, 
+    rgeos

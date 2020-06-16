@@ -15,6 +15,7 @@
 #' @param verbose logical
 #' @param species.list logical: Should the list of species composing the species pool be returned?
 #' @param mycrs a CRS object defining the coordinate reference of coords, if coords is a data.frame
+#' @param lonlat Specify whether the CRS is projected (lonlat=T) or unprojected (lonlat=F)
 #' @return Returns a dataframe containing for each relevé:
 #' - Species -  the number of species observed across all relevés neighouring the target relevé\cr
 #' - Chao, iChao2, jack1, jack2 -  various species richness estimates and standard errors, as derived from the function SpadeR::ChaoSpecies\cr
@@ -31,7 +32,7 @@
 SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                               t.radius=20000, t.bray=0.2, t.plot.number=10L,
                         cutoff=c("iChao2", "Gompertz", "Michaelis"),
-                        verbose=T, species.list=F, mycrs=NULL) {
+                        verbose=T, species.list=F, mycrs=NULL, lonlat=NULL) {
 
   ##validity check
   if(class(coords) != ("SpatialPointsDataFrame")) {
@@ -42,6 +43,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                                      proj4string = mycrs,
                                      data = coords[,3:4])
   }
+  if(is.null(lonlat)) stop("Please specify whether crs is project (lonlat=F) or unprojected (lonlat=T)")
   if(ncol(input.data) !=3) stop("input.data should have three columns: species, releve, abundance")
   colnames(input.data) <- c( "RELEVE_NR", "SPECIES_NR","COV_PERC")
   input.data$SPECIES_NR <- as.character(input.data$SPECIES_NR)
@@ -116,7 +118,10 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                                                  "Asymp", "R0.Asym", "lrc.Asym", "AIC.Asym"
                                                  #"t.radius", "t.bray", "t.plot.number"
                                                  )))
-    result <- as.tbl(as.data.frame(result))
+    result <- as_tibble(as.data.frame(result)) %>%
+      mutate(RELEVE_NR=as.character(RELEVE_NR)) %>%
+      mutate_at(.vars=vars(Species:AIC.Asym),
+                .funs=~as.numeric(.))
     if(species.list==T) result <- result %>%
       mutate(sp.pool.list=NA) %>%
       mutate(sp.pool.list=as.list(sp.pool.list))
@@ -128,7 +133,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
     #result[1,30] <- t.plot.number
 
     ## circle around the target plot
-    circ <- circles(env[i, ], d = t.radius, lonlat = T)
+    circ <- circles(env[i, ], d = t.radius, lonlat = lonlat)
     poly <- circ@polygons
     options(warn=-1)
     proj4string(poly) <- proj4string(env)
@@ -176,9 +181,9 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
           DT3.matrix <- acast(DT3, RELEVE_NR ~ SPECIES_NR, fill=0, value.var="presence")
           result[1,2] <- sum(colSums(DT3.matrix)>0)
           ### ADDED TRYCATCH to CHAOSPECIES as a workaround to avoid occasional crashes
-          result[1,c(3:10)] <- tryCatch(as.numeric(t(ChaoSpecies(t(DT3.matrix),
-                                                                 datatype="incidence_raw", k=10, conf=0.95)$Species_table[c(2,4,7:8),1:2])),
-                                        error = function(e){rep(NA, 8)}
+          result[1,c(3:10)] <- tryCatch(t(as.numeric(t(ChaoSpecies(t(DT3.matrix),
+                                                                 datatype="incidence_raw", k=10, conf=0.95)$Species_table[c(2,4,7:8),1:2]))),
+                                        error = function(e){t(rep(NA, 8))}
           )
           if(!is.na(result[1,3])){
             target.plot <- DT3 %>% filter(RELEVE_NR==env@data$RELEVE_NR[i])
@@ -212,7 +217,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                 }
               )
               if (!is.na(model3b[1])){
-                result[1,c(14:15)] <- coef(model3b)
+                result[1,c(14:15)] <- t(coef(model3b))
                 result[1,16] <- AIC(model3b)
               }
               ### Gompertz
@@ -226,7 +231,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                 }
               )
               if (!is.na(model3c[1])){
-                result[1,c(17:19)] <- coef(model3c)
+                result[1,c(17:19)] <- t(coef(model3c))
                 result[1,20] <- AIC(model3c)
               }
               ## MichaelisMenten
@@ -240,7 +245,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                 }
               )
               if (!is.na(model3d[1])){
-                result[1,c(21:22)] <- coef(model3d)
+                result[1,c(21:22)] <- t(coef(model3d))
                 result[1,23] <- AIC(model3d)
               }
               ## Asymptote model
@@ -253,7 +258,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                 }
               )
               if (!is.na(model3e[1])){
-                result[1,c(24:26)] <- coef(model3e)
+                result[1,c(24:26)] <- t(coef(model3e))
                 result[1,27] <- AIC(model3e)
               }
             }
@@ -262,7 +267,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
                               ifelse(cutoff=="Gompertz", "gomp.Asym",
                                      "Asymp"))
             if(species.list==T & !is.na(as.numeric(result %>%
-                                  dplyr::select(cutoff0))) ){
+                                  dplyr::select(all_of(cutoff0)))) ){
                 result <-  result %>%
                 mutate(sp.pool.list = list(target.plot %>%
                                              ungroup() %>%
