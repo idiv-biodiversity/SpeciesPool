@@ -4,10 +4,20 @@
 \alias{SpeciesPool}
 \title{Species pool based on Beal's smoothing}
 \usage{
-SpeciesPool(input.data, coords, Mij = NULL, ncores = 1, rows = NULL,
-  t.radius = 20000, t.bray = 0.2, t.plot.number = 10L,
-  cutoff = c("iChao2", "Gompertz", "Michaelis"), verbose = T,
-  species.list = F, mycrs = NULL)
+SpeciesPool(
+  input.data,
+  coords,
+  Mij = NULL,
+  ncores = 1,
+  rows = NULL,
+  t.radius = 20000,
+  t.bray = 0.2,
+  t.plot.number = 10L,
+  cutoff = c("iChao2", "Gompertz", "Michaelis"),
+  verbose = T,
+  species.list = F,
+  mycrs = NULL
+)
 }
 \arguments{
 \item{input.data}{data.frame of species abundances across relevés. It should have three columns: one with Relevé IDs, one with Species ID, and one with species abundance/cover values}
@@ -46,11 +56,6 @@ Returns a dataframe containing for each relevé:
 }
 \description{
 For each relevé, this function selects all neighbouring relevés having a similar potential species composition, and fits empirical non-linear functions to rarefaction curves.
-}
-\examples{
-load(GVRD_test_data.RData) ## data provided separately, make sure it's in working directory
-aa <- SpeciesPool(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000,
->         t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
 }
 \author{
 Francesco Maria Sabatini

@@ -25,10 +25,6 @@
 #' - sp.pool.list -   list of species compatible with target relevé, i.e. having a Beals' likelihood lower than beals.at.chao\cr
 #' @export
 #' @examples
-#' load(GVRD_test_data.RData) ## data provided separately, make sure it's in working directory
-#' aa <- SpeciesPool(DT.fb, mycoords, ncores=3, rows=1:100, t.radius=20000,
-#' >         t.bray=0.2, t.plot.number=10L, verbose=T, species.list = T)
-
 
 
 
