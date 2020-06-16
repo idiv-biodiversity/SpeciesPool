@@ -148,7 +148,7 @@ SpeciesPool <- function(input.data, coords, Mij=NULL, ncores=1, rows=NULL,
           filter(RELEVE_NR %in% env2@data$RELEVE_NR)
         ### calculating DT.beals inside loop
         DT2.beals <-expand.grid(unique(DT2$RELEVE_NR), all.species) %>%
-          as.tbl() %>%
+          as_tibble() %>%
           rename(RELEVE_NR=Var1, SPECIES_NR=Var2) %>%
           mutate_all(~as.character(.)) %>%
           left_join(DT2, by=c("RELEVE_NR", "SPECIES_NR")) %>%
